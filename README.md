@@ -18,6 +18,8 @@
 
 ## 📸 Executive Command Center Preview
 
+## 📸 Executive Command Center Preview
+
 
 ┌───────────────────────────────────────────────────────────────────────────────────────────┐
 │ [LIVE MAP ENGINE]                                [AUTHORIZED OFFICER TRIAGE DASHBOARD]    │
@@ -29,9 +31,9 @@
 └───────────────────────────────────────────────────────────────────────────────────────────┘
 
 📐 End-to-End System Architecture
-The following diagram illustrates CivicGuard's decoupled multi-tier architecture, emphasizing zero-trust security boundaries, event-driven WebSocket dispatches, and PostGIS spatial query nodes:
+The diagram below illustrates CivicGuard's multi-tier microservice architecture, highlighting the zero-trust security gateway, backend PostgreSQL triggers, and WebSocket telemetry stream:
 
-                  ┌─────────────────────────────────────────┐
+┌─────────────────────────────────────────┐
                   │          PUBLIC / CITIZEN LAYER         │
                   └────────────────────┬────────────────────┘
                                        │
@@ -76,63 +78,43 @@ The following diagram illustrates CivicGuard's decoupled multi-tier architecture
                   │  - Incident Triage Grid & Case Inspector│
                   │  - Intelligence PDF/CSV Export Engine   │
                   └─────────────────────────────────────────┘
-                  
-🛠️ Technology Stack & Frameworks
 
-Core Layer	Technology	Key Utility
-Frontend Framework	React 18 + TypeScript	Strict type safety, custom hooks architecture, modular UI components.
-Styling & Theme	Tailwind CSS	Dark-mode GovTech command center theme, fluid dynamic viewports (dvh).
-Geospatial & Mapping	Leaflet.js / React-Leaflet	Custom marker clustering, interactive spatial overlays, spatial distance math.
-Heatmap Engine	leaflet.heat	High-performance canvas-based density heat gradient rendering.
-Backend & DB	Supabase (PostgreSQL)	Spatial indexing, Realtime WebSocket streams, database triggers.
-Authentication & IAM	Supabase Auth + JWT	Role-based JWT session tokens, custom claims, protected UI guards.
-State & Data Fetching	React Context + Hooks	Zero-lag local telemetry state management and optimistic updates.
-CI/CD & DevSecOps	GitHub Actions + Vercel	Automated vulnerability scanning, type safety checks, and edge deployment.
+## 🔒 Enterprise Security Hardening & Compliance
 
-🔒 Enterprise Security Hardening & Compliance
-CivicGuard is built following OWASP Top 10 proactive defense standards and zero-trust principles:
+CivicGuard is engineered according to **OWASP Top 10** defense-in-depth principles:
 
-🛡️ Row-Level Security (RLS): Database policies enforce strict separation of duties. Citizens read/write only their own records; officers access data restricted to their assigned precinct jurisdiction ID.
-
-📝 Immutable Audit Trail: All updates to sensitive case states, serial numbers, and badge verifications trigger automated backend SQL logging to an immutable audit_logs table (read-only for admins; UPDATE/DELETE prohibited).
-
-🧹 XSS & SQLi Sanitization: All text inputs are scrubbed through a multi-pass regex sanitizer before query construction.
-
-⚡ Sliding-Window Rate Limiting: Public serial queries and incident submissions are throttled per IP/User to mitigate DDoS attacks and data harvesting.
-
-🔒 HTTP Security Headers: Implemented strict Content-Security-Policy, HSTS, X-Frame-Options: DENY, and X-Content-Type-Options: nosniff.
-
-🚀 DevSecOps Automated CI/CD Pipeline
-Our continuous deployment pipeline ensures that zero unsafe code reaches production. Every commit to main executes a multi-stage automated workflow (.github/workflows/devsecops-pipeline.yml):
-
-
-[ Git Push ] ──► [ 1. Security Audit ] ──► [ 2. Test & Typecheck ] ──► [ 3. Edge Deployment ]
-                  • npm audit (High CVEs)   • tsc --noEmit             • Automated Vercel Build
-                  • ESLint Security Rules   • Unit & Integration       • Zero Downtime Release
-                  
-## ⚡ Core Engineering Modules
-
-1. **Geospatial Hotspot Analytics Layer:** Real-time spatial density engine utilizing `leaflet.heat` to render dynamic risk gradient zones (Green ➔ Yellow ➔ Red) across city sectors.
-2. **Automated Asset Recovery Matcher:** SQL trigger-based engine using Levenshtein distance fuzzy string matching to cross-reference reported stolen VINs/Serial numbers against pawnshop & police recovery registries.
-3. **Authorized Officer Triage Center:** Command dashboard for officers featuring full-text incident search, quick status transitions (`pending` ➔ `investigated` ➔ `recovered`), and precinct-wide data grid filters.
-4. **Real-Time WebSocket Dispatch Pipeline:** Audio-visual Web Audio API dispatch alerts firing under less than 50ms when critical incidents land inside an officer's precinct boundary.
-5. **Executive Intelligence Export Suite:** Custom PDF briefing and CSV export module for producing official municipal crime briefings and patrol shift logs.
+* 🛡️ **Row-Level Security (RLS):** Database policies strictly segregate access—citizens can only access their personal reports, while officers are scoped to their assigned precinct jurisdiction ID.
+* 📝 **Immutable Audit Logging:** System events, badge verification changes, and status updates trigger database-level logging into a read-only `audit_logs` table (`UPDATE` and `DELETE` queries are strictly disabled).
+* 🧹 **XSS & Injection Protection:** Inputs undergo strict regex sanitization prior to processing to prevent XSS and injection vectors.
+* ⚡ **Sliding-Window Rate Limiting:** Public serial queries and reporting endpoints are throttled per IP address to prevent brute-force data scraping and DDoS abuse.
+* 🔒 **Strict HTTP Headers:** Production builds enforce `Content-Security-Policy`, `HSTS`, `X-Frame-Options: DENY`, and `X-Content-Type-Options: nosniff`.
 
 ---
 
-## 💻 Local Installation & Setup Guide
+## 🚀 DevSecOps Automated CI/CD Pipeline
 
-### Prerequisites
-- Node.js `v18.0.0+`
-- npm `v9.0.0+`
-- A Supabase Project Account
+Zero unverified code reaches production. Every commit to `main` executes a multi-stage automated workflow (`.github/workflows/devsecops-pipeline.yml`):
 
-### 1. Clone Repository
+```text
+ [ Git Push ] ──► [ 1. Security Audit ] ──► [ 2. Test & Typecheck ] ──► [ 3. Production Deploy ]
+                   • npm audit (High CVEs)   • tsc --noEmit             • Vercel Edge Release
+                   • ESLint Security Rules   • Vitest Component Tests   • Automated Deployment
 
-git clone [https://github.com/SajithDevPro/civicguard.git](https://github.com/SajithDevPro/civicguard.git)
-cd civicguard
+⚡ Core Engineering Modules
+Geospatial Hotspot Analytics Layer: Real-time spatial density engine utilizing leaflet.heat to render dynamic risk gradient zones (Green ➔ Yellow ➔ Red) across city sectors.
 
-<ElicitationsGroup message="Your project now has a complete, production-ready README file! What would you like to do next?">
-  <Elicitation label="Configure Vercel Deployment Secrets for GitHub Actions" query="Guide me step-by-step on how to get VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID for GitHub Secrets."/>
-  <Elicitation label="Write Portfolio Case Study for Resume & LinkedIn" query="Write a bulleted portfolio case study describing CivicGuard for my resume and LinkedIn project section."/>
-</ElicitationsGroup>
+Automated Asset Recovery Matcher: SQL trigger-based engine using Levenshtein distance fuzzy string matching to cross-reference reported stolen VINs/Serial numbers against pawnshop & police recovery registries.
+
+Authorized Officer Triage Center: Command dashboard for officers featuring full-text incident search, quick status transitions (pending ➔ investigated ➔ recovered), and precinct-wide data grid filters.
+
+Real-Time WebSocket Dispatch Pipeline: Audio-visual Web Audio API dispatch alerts firing under 50ms when critical incidents land inside an officer's precinct boundary.
+
+Executive Intelligence Export Suite: Custom PDF briefing and CSV export module for producing official municipal crime briefings and patrol shift logs.
+
+💻 Local Installation & Setup Guide
+Prerequisites
+Node.js: v18.0.0 or higher
+
+npm: v9.0.0 or higher
+
+Database: Active Supabase Project Account                  

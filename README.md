@@ -18,9 +18,8 @@
 
 ## 📸 Executive Command Center Preview
 
-## 📸 Executive Command Center Preview
 
-
+```text
 ┌───────────────────────────────────────────────────────────────────────────────────────────┐
 │ [LIVE MAP ENGINE]                                [AUTHORIZED OFFICER TRIAGE DASHBOARD]    │
 │ ┌───────────────────────────────────────┐        ┌──────────────────────────────────────┐ │

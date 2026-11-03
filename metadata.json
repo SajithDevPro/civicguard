@@ -1,0 +1,6 @@
+{
+  "name": "CivicGuard - Public Safety & Asset Recovery Platform",
+  "description": "High-stakes, real-time public safety and asset recovery platform bridging citizens and law enforcement with tactical geospatial incident mapping, automated jurisdiction assignment, and RBAC security.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

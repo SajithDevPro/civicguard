@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment & Secrets (NEVER UPLOAD KEYS)
+.env
+.env.local
+.env.production
+
+# Build Outputs
+dist/
+build/
+.vercel/
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+.vscode/

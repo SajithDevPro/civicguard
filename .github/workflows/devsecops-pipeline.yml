@@ -1,0 +1,167 @@
+name: CivicGuard DevSecOps Pipeline
+
+# ==============================================================================
+# PIPELINE TRIGGERS & CONCURRENCY
+# ==============================================================================
+# Automatically triggers on:
+# 1. Direct pushes to main branch (initiates audit, test, and production deployment)
+# 2. Pull requests targeting main (runs audit and tests; blocks deployment until merged)
+# 3. Manual triggers via GitHub Actions UI (workflow_dispatch)
+# ==============================================================================
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+# Enforce cancel-in-progress to terminate redundant CI runs on fast-forward commits
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Zero-Trust / Least-Privilege default permissions (read-only repository access)
+permissions:
+  contents: read
+
+# ==============================================================================
+# AUTOMATED QUALITY & DEPLOYMENT JOBS
+# ==============================================================================
+jobs:
+  # ----------------------------------------------------------------------------
+  # STAGE 1: Security Audit & Code Health
+  # Objective: Enforce zero-trust security audits, static linting, and TypeScript validation.
+  # Fails fast on high/critical CVEs or syntax errors.
+  # ----------------------------------------------------------------------------
+  security-audit:
+    name: "Stage 1: Security Audit & Code Health"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js v18 Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Clean Dependency Installation
+        run: |
+          echo "Installing project dependencies using clean install..."
+          npm ci || npm install --prefer-offline --no-audit
+
+      - name: Automated Dependency Security Audit
+        run: |
+          echo "Scanning dependency tree for High / Critical CVE vulnerabilities..."
+          # Enforces Fail-Closed security: high or critical vulnerabilities trigger exit code 1
+          npm audit --audit-level=high
+
+      - name: Static Analysis & Code Linting
+        run: |
+          echo "Running static analysis via ESLint / project linter..."
+          npm run lint
+
+      - name: Strict TypeScript Compilation Check
+        run: |
+          echo "Verifying TypeScript types across client components and database interfaces..."
+          npx tsc --noEmit
+
+  # ----------------------------------------------------------------------------
+  # STAGE 2: Automated Testing & Build Validation
+  # Objective: Run unit, component integration tests, and production build checks.
+  # Depends strictly on Stage 1 passing (Fail-Closed).
+  # ----------------------------------------------------------------------------
+  test:
+    name: "Stage 2: Automated Testing & Build Verification"
+    needs: [security-audit]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js v18 Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Clean Dependency Installation
+        run: |
+          npm ci || npm install --prefer-offline --no-audit
+
+      - name: Run Test Suite
+        run: |
+          echo "Executing automated test suite with --passWithNoTests flag..."
+          npm test -- --passWithNoTests
+
+      - name: Dry-Run Production Asset Compilation
+        run: |
+          echo "Compiling Vite production bundle to verify asset tree integrity..."
+          npm run build
+
+  # ----------------------------------------------------------------------------
+  # STAGE 3: Automated Production Deployment (Vercel)
+  # Objective: Deploys production bundle directly to Vercel GovTech hosting edge.
+  # Constraints:
+  # - Executes ONLY if security-audit AND test stages pass successfully.
+  # - Executes ONLY on direct commits/merges to the 'main' branch.
+  # ----------------------------------------------------------------------------
+  deploy:
+    name: "Stage 3: Automated Production Deployment"
+    needs: [security-audit, test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js v18 Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Install Project Dependencies
+        run: |
+          npm ci || npm install --prefer-offline --no-audit
+
+      - name: Pull Vercel Environment Configuration
+        run: |
+          echo "Pulling production environment metadata from Vercel..."
+          npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Production Artifacts on Vercel Engine
+        run: |
+          echo "Generating optimized production build artifacts..."
+          npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy Prebuilt Artifacts to Production Edge
+        run: |
+          echo "Publishing prebuilt bundle to Vercel production edge network..."
+          npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deployment Completion Summary
+        run: |
+          echo "=========================================================="
+          echo "CivicGuard GovTech Deployment Successfully Completed!"
+          echo "Environment: Production (Edge Network)"
+          echo "Pipeline Commit SHA: ${{ github.sha }}"
+          echo "=========================================================="

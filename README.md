@@ -32,7 +32,7 @@
 📐 End-to-End System Architecture
 The diagram below illustrates CivicGuard's multi-tier microservice architecture, highlighting the zero-trust security gateway, backend PostgreSQL triggers, and WebSocket telemetry stream:
 
-┌─────────────────────────────────────────┐
+                  ┌─────────────────────────────────────────┐
                   │          PUBLIC / CITIZEN LAYER         │
                   └────────────────────┬────────────────────┘
                                        │
@@ -116,4 +116,10 @@ Node.js: v18.0.0 or higher
 
 npm: v9.0.0 or higher
 
-Database: Active Supabase Project Account                  
+ ## 📄 License & Copyright
+
+© 2026 **Sajith (SajithDevPro)**. All Rights Reserved. 🔒
+
+🚫 Proprietary software — copying, modification, redistribution, and commercial use are prohibited without written permission.
+
+⚖️ Unauthorized use may result in legal action.
